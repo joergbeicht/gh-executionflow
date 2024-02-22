@@ -35,6 +35,8 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         run: npm ci
       - name: Test code
+        # Einen Error ignorieren
+        # Der nächste step und die folgenden steps sollen ausgeführt werden
         continue-on-error: true
         id: run-tests
         run: npm run test
