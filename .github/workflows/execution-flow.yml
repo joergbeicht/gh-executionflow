@@ -13,9 +13,12 @@ jobs:
         id: cache
         uses: actions/cache@v3
         with:
-          path: ~/.npm
+          # cacht den folder node_modules
+          path: node_modules
           key: deps-node-modules-${{ hashFiles('**/package-lock.json') }}
       - name: Install dependencies
+        # prüft ob der Folder da ist, wenn nicht wird npm ci ausgeführt
+        if: steps.cache.outputs.cache-hit != 'true'
         run: npm ci
       - name: Lint code
         run: npm run lint
@@ -28,14 +31,26 @@ jobs:
         id: cache
         uses: actions/cache@v3
         with:
-          path: ~/.npm
+          # cacht den folder node_modules
+          path: node_modules
           key: deps-node-modules-${{ hashFiles('**/package-lock.json') }}
       - name: Install dependencies
+        # prüft ob der Folder da ist, wenn nicht wird npm ci ausgeführt
+        if: steps.cache.outputs.cache-hit != 'true'
         run: npm ci
       - name: Test code
         id: run-tests
         run: npm run test
       - name: Upload test report
+        # Diese Condition dann uploade den Report
+        # Damit der Report weiss worum es geht muss zuvor die id festgelegt werden
+        # Im Beispiel id: run-tests
+        # Hinweis du findest alle Operatoren in GitHub Doku wie ==, <, > usw.
+        # failure() ist eine spezielle Condition funktion
+        # es gibt failure(), success(), always() und cancelled()
+        # mit failure() stellen wir sicher dass GitHub mitbekommt, dass der Step failure() ist
+        # mit && folgt die Bedingung
+        # Der Test Report wird als Artifact gespeichert
         if: failure() && steps.run-tests.outcome == 'failure'
         uses: actions/upload-artifact@v3
         with:
@@ -51,9 +66,12 @@ jobs:
         id: cache
         uses: actions/cache@v3
         with:
-          path: ~/.npm
+          # cacht den folder node_modules
+          path: node_modules
           key: deps-node-modules-${{ hashFiles('**/package-lock.json') }}
       - name: Install dependencies
+        # prüft ob der Folder da ist, wenn nicht wird npm ci ausgeführt
+        if: steps.cache.outputs.cache-hit != 'true'
         run: npm ci
       - name: Build website
         id: build-website
@@ -76,11 +94,13 @@ jobs:
       - name: Deploy
         run: echo "Deploying..."
   report:
+    # soll nur auf diese Jobs reagieren
     needs: [lint, deploy]
+    # 'if:' 'failure() bedeutet dass diese Job läuft wenn ein Job von oben fehl schlägt
     if: failure()
     runs-on: ubuntu-latest
     steps:
       - name: Output information
         run: |
           echo "Something went wrong"
-          echo "${{ github }}"
+          echo "${{ toJson(github) }}"
