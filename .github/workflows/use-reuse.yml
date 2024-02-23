@@ -61,15 +61,28 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
+          # siehe artifact-name
           name: dist-files
           path: dist
   deploy:
     needs: build
+    # Das ist die Nutzung eines externen Workflows
+    # immer relativ vom root Folder denken
     uses: ./.github/workflows/reusable.yml
     with:
+      # reusable.yml ist ein wiederverwendbarer Workflow
+      # Oben wird mit uses gesagt dass reusable.yml hier benutzt werden soll
+      # artifact-name: dist-files definiert die inputs die übergeben werden müssen
+      # Der Artifact name wurd zuvor oben im build job definiert!
+      # Deswegen muss hier artifact-name: dist-files an den reusable Workflow übergeben werden
+      # Das input Propertie muss artifact-name heissen, das wurde im reusable Workflow so definiert
+      # Siehe reusable.yml => artifact-name ist ein input vom Typ string und genau
+      # dieser string wird hier mit dist-files übergeben!
+      # da der Wiederverwendbare das erfordert!
       artifact-name: dist-files
       #secrets:
-      #  some-secrets: ${{ secrets. }}
+      #  some-secrets: ${{ secrets.some-secrets }}
+  # Nimmt sich die outputs aus dem wiederverwendbaren Workflow siehe outputs
   print-deploy-result:
     needs: deploy
     runs-on: ubuntu-latest

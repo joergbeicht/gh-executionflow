@@ -1,15 +1,31 @@
+# Das ist eine wiederverwendbarer Workflow
+# Er kann inputs und outputs haben
+# Ein Workflow wird mit workflow_call wiederverwendbarer
 name: Reusable Deploy
-on: 
+on:
+  # mit workflow_call kann dieser Workflow von anderen Workflow aufgerufen werden
+  # siehe use-reuse.yml dort wird dieser Workflow aufgerufen
   workflow_call:
+    # Hier werden die inputs Properties definiert
+    # informiert bzw. definiert dass der reusable Workflow inputs, also Daten übergeben bekommt
+    # weiter unten kann dann der input-Wert empfangen werden
+    # im Beispiel werden im use-reuse.yml Workflow die inputs übergeben
     inputs:
+      # artifact-name ist das input Propertie.
+      # required: true => das input ist ein MUSS
+      # type: string => ist vom Typ string
       artifact-name:
         description: The name of the deployable artifacts files
         required: true
         default: dist
+        # type kann string, boolean etc sein
         type: string
+    # Hier werden die output Properties definiert
     outputs:
       result:
         description: The result of the deployment operation
+        # Der Output nimmt sich den Output Wert aus dem job
+        # hier im Beispiel jobs.deploy
         value: ${{ jobs.deploy.outputs.outcome }}
     #secrets:
       #some-secret:
@@ -17,12 +33,17 @@ on:
 jobs:
   deploy:
     outputs:
+      # hier weird das output Propertie definiert
+      # dazu muss es eine id weiter unten geben im Beispiel ist das set-result
+      # und der eigentliche Wert ist step-result der mit >> in $GITHUB_OUTPUT geschrieben wird
       outcome: ${{ steps.set-result.outputs.step-result }}
     runs-on: ubuntu-latest
     steps:
       - name: Get Code
         uses: actions/download-artifact@v3
         with:
+          # damit werden dem reusable Workflow inputs übergeben
+          # ist ein Contect Object siehe andere Workflows
           name: ${{ inputs.artifact-name }}
       - name: List files
         run: ls
@@ -30,4 +51,5 @@ jobs:
         uses: echo "Deploying & uploading..."
       - name: Set result output
         id: set-result
-        run: echt "::set-output name=step-result::success"
+        # Alte schreibweise! run: echo "::set-output name=step-result::success"
+        run: echo "step-result=success >> $GITHUB_OUTPUT"
