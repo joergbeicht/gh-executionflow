@@ -2,14 +2,26 @@ name: Matrix Demo
 on: push
 jobs:
   build:
+    # bewirkt dass alle matrix jobs durchlaufen
     continue-on-error: true
     strategy:
+        # matrix erlaubt es schnell möglich den build job n mal auszuführen
+        # Im Beispiel wird Jobs build einmal für operating-system: [ubuntu-latest, windows-latest]
+        # also für zwei Maschinen ausgeführt und zusätzlich mit den node-version: [12, 14, 16] 
+        # Es wird also 6 mal der build Job durchgeführt
+        # 3 x für ubuntu-latest mit jeweils node-version 12, 14, 16 und
+        # 3 x für windows-latest mit jeweils node-version 12, 14, 16
         matrix:
           node-version: [12, 14, 16]
           operating-system: [ubuntu-latest, windows-latest]
+          # ermöglicht eine single anweisung in der matrix
+          # würde 18 in node-version: [12, 14, 16] ergänzt, führt das zu zwei
+          # neue Jobs wegen operating-system: [ubuntu-latest, windows-latest]
+          # include bewirkt dass NUR der ubuntu-latest Job aber nicht windows-latest entsteht
           include:
             - node-version: 18
               operating-system: ubuntu-latest
+          # exclude macht das Gegenteil von include. Ein Job wird ausgeschlossen
           exclude:
             - node-verision: 12
               operating-system: windows-latest
@@ -17,7 +29,7 @@ jobs:
     steps:
       - name: Get code
         uses: actions/checkout@v3
-      - name: Install NideJs
+      - name: Install NodeJs
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
